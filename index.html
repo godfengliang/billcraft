@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BillCraft — Free Invoice Generator | PDF Export, No Signup</title>
+  <meta name="description" content="Free professional invoice generator. Create invoices in 60 seconds with one-click PDF export. No signup, no backend, no subscription. 3 templates, 7 currencies, works offline.">
+  <meta name="keywords" content="invoice generator, free invoice, PDF invoice, invoice template, freelancer invoice, billing tool, offline invoice">
+  <meta name="author" content="BillCraft">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://billcraft-demo.surge.sh/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="BillCraft — Free Invoice Generator">
+  <meta property="og:description" content="Create professional invoices in 60 seconds. Free, no signup, one-click PDF export. 3 templates, 7 currencies.">
+  <meta property="og:url" content="https://billcraft-demo.surge.sh/">
+  <meta property="og:site_name" content="BillCraft">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="BillCraft — Free Invoice Generator">
+  <meta name="twitter:description" content="Create professional invoices in 60 seconds. No signup, no backend, works offline.">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "BillCraft",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Any (Browser-based)",
+    "description": "Free professional invoice generator with one-click PDF export. No signup required.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: {
+        brand: { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81' }
+      }}}
+    }
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
+    <div class="max-w-[1800px] mx-auto px-3 flex items-center justify-between h-14">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <span class="font-bold text-lg text-slate-800">Bill<span class="text-brand-600">Craft</span></span>
+      </div>
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <select id="lang-switch" onchange="App.setLang(this.value)" class="field-input-sm w-16 text-center border border-slate-200 rounded-md px-1 py-1 text-xs">
+          <option value="en">EN</option>
+          <option value="zh">中文</option>
+        </select>
+        <button onclick="App.newInvoice()" class="btn-nav" data-t="navNew">New</button>
+        <button onclick="App.saveInvoice()" class="btn-nav" data-t="navSave">Save</button>
+        <button onclick="App.showSavedModal()" class="btn-nav" data-t="navHistory">History</button>
+        <div class="w-px h-5 bg-slate-200 mx-0.5 hidden md:block"></div>
+        <button onclick="App.printInvoice()" class="btn-nav-secondary hidden md:inline-block" data-t="navPrint">Print</button>
+        <button onclick="App.exportPDF()" class="btn-primary" data-t="navPDF">Export PDF</button>
+        <button onclick="App.showPricing()" class="btn-upgrade" data-t="navUpgrade">Upgrade Pro</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main-layout">
+
+    <!-- Form Panel -->
+    <div id="form-panel" class="form-panel">
+
+      <!-- Invoice Details -->
+      <section>
+        <h3 class="section-title" data-t="secDetails">Invoice Details</h3>
+        <div class="grid grid-cols-4 gap-2.5">
+          <div><label class="field-label" data-t="lblNumber">Invoice #</label><input id="inv-number" type="text" value="INV-001" class="field-input" oninput="App.update()"></div>
+          <div><label class="field-label" data-t="lblDate">Date</label><input id="inv-date" type="date" class="field-input" oninput="App.update()"></div>
+          <div><label class="field-label" data-t="lblDue">Due Date</label><input id="inv-due" type="date" class="field-input" oninput="App.update()"></div>
+          <div><label class="field-label" data-t="lblCurrency">Currency</label>
+            <select id="inv-currency" class="field-input" onchange="App.update()">
+              <option value="USD">USD ($)</option><option value="EUR">EUR (&euro;)</option>
+              <option value="GBP">GBP (&pound;)</option><option value="CNY">CNY (&yen;)</option>
+              <option value="JPY">JPY (&yen;)</option><option value="KRW">KRW (&#8361;)</option>
+              <option value="HKD">HKD (HK$)</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Template -->
+      <section>
+        <h3 class="section-title" data-t="lblTemplate">Template</h3>
+        <div class="flex gap-2.5">
+          <button onclick="App.setTemplate('modern')" id="tpl-modern" class="tpl-btn active">
+            <div class="w-full h-14 rounded bg-gradient-to-br from-brand-500 to-brand-700 mb-1"></div>
+            <span class="text-xs" data-t="tplModern">Modern</span>
+          </button>
+          <button onclick="App.setTemplate('classic')" id="tpl-classic" class="tpl-btn relative">
+            <div class="w-full h-14 rounded border-2 border-slate-300 mb-1"></div>
+            <span class="text-xs" data-t="tplClassic">Classic</span>
+            <span class="tpl-pro-badge" id="badge-classic">PRO</span>
+          </button>
+          <button onclick="App.setTemplate('minimal')" id="tpl-minimal" class="tpl-btn relative">
+            <div class="w-full h-14 rounded border border-slate-200 bg-slate-50 mb-1"></div>
+            <span class="text-xs" data-t="tplMinimal">Minimal</span>
+            <span class="tpl-pro-badge" id="badge-minimal">PRO</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Logo -->
+      <section>
+        <h3 class="section-title" data-t="lblLogo">Company Logo</h3>
+        <div class="flex items-center gap-3">
+          <div id="logo-preview" class="w-14 h-14 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-[10px] cursor-pointer" onclick="document.getElementById('logo-upload').click()" data-t="btnUpload">Upload</div>
+          <input type="file" id="logo-upload" accept="image/*" class="hidden" onchange="App.uploadLogo(event)">
+          <button onclick="App.removeLogo()" class="text-xs text-slate-400 hover:text-red-500" data-t="btnRemove">Remove</button>
+        </div>
+      </section>
+
+      <!-- From / To -->
+      <section class="grid grid-cols-2 gap-5">
+        <div>
+          <h3 class="section-title" data-t="secFrom">From</h3>
+          <div class="space-y-1.5">
+            <input id="from-name" type="text" class="field-input" data-t-ph="phName" placeholder="Company / Name" oninput="App.update()">
+            <input id="from-email" type="email" class="field-input" data-t-ph="phEmail" placeholder="Email" oninput="App.update()">
+            <textarea id="from-address" class="field-input" rows="2" data-t-ph="phAddress" placeholder="Address" oninput="App.update()"></textarea>
+            <input id="from-phone" type="text" class="field-input" data-t-ph="phPhone" placeholder="Phone" oninput="App.update()">
+          </div>
+        </div>
+        <div>
+          <h3 class="section-title" data-t="secTo">Bill To</h3>
+          <div class="space-y-1.5">
+            <input id="to-name" type="text" class="field-input" data-t-ph="phClient" placeholder="Client Name" oninput="App.update()">
+            <input id="to-email" type="email" class="field-input" data-t-ph="phEmail" placeholder="Email" oninput="App.update()">
+            <textarea id="to-address" class="field-input" rows="2" data-t-ph="phAddress" placeholder="Address" oninput="App.update()"></textarea>
+            <input id="to-phone" type="text" class="field-input" data-t-ph="phPhone" placeholder="Phone" oninput="App.update()">
+          </div>
+        </div>
+      </section>
+
+      <!-- Line Items -->
+      <section>
+        <div class="flex items-center justify-between mb-1.5">
+          <h3 class="section-title mb-0" data-t="secItems">Line Items</h3>
+          <button onclick="App.addItem()" class="text-sm text-brand-600 hover:text-brand-700 font-medium" data-t="btnAddItem">+ Add Item</button>
+        </div>
+        <div class="border rounded-lg overflow-hidden">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-slate-500">
+                <th class="text-left py-2 px-2 font-medium w-[44%]" data-t="colDesc">Description</th>
+                <th class="text-right py-2 px-2 font-medium w-[14%]" data-t="colQty">Qty</th>
+                <th class="text-right py-2 px-2 font-medium w-[18%]" data-t="colRate">Rate</th>
+                <th class="text-right py-2 px-2 font-medium w-[18%]" data-t="colAmount">Amount</th>
+                <th class="w-[6%]"></th>
+              </tr>
+            </thead>
+            <tbody id="items-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tax & Discount -->
+      <section class="grid grid-cols-3 gap-3">
+        <div><label class="field-label" data-t="lblTax">Tax Rate (%)</label><input id="inv-tax" type="number" value="0" min="0" max="100" step="0.5" class="field-input" oninput="App.update()"></div>
+        <div><label class="field-label" data-t="lblDiscount">Discount</label><input id="inv-discount" type="number" value="0" min="0" step="0.01" class="field-input" oninput="App.update()"></div>
+        <div><label class="field-label" data-t="lblDiscType">Discount Type</label>
+          <select id="discount-type" class="field-input" onchange="App.update()">
+            <option value="amount" data-t="optFixed">Fixed Amount</option>
+            <option value="percent" data-t="optPercent">Percentage (%)</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Notes -->
+      <section>
+        <h3 class="section-title" data-t="secNotes">Notes</h3>
+        <textarea id="inv-notes" class="field-input" rows="2" data-t-ph="phNotes" placeholder="Payment terms..." oninput="App.update()"></textarea>
+      </section>
+
+      <!-- Payment Details -->
+      <section>
+        <h3 class="section-title" data-t="secPayment">Payment Info</h3>
+        <div class="space-y-1.5">
+          <select id="pay-method" class="field-input" onchange="App.togglePaymentFields()">
+            <option value="" data-t="optNone">-- None --</option>
+            <option value="bank" data-t="optBank">Bank Transfer</option>
+            <option value="paypal" data-t="optPaypal">PayPal</option>
+            <option value="other" data-t="optOther">Other</option>
+          </select>
+          <div id="pay-bank-fields" class="space-y-1.5 hidden">
+            <input id="pay-bank-name" type="text" class="field-input" data-t-ph="phBankName" placeholder="Bank Name" oninput="App.update()">
+            <input id="pay-account" type="text" class="field-input" data-t-ph="phAccount" placeholder="Account / IBAN" oninput="App.update()">
+            <input id="pay-swift" type="text" class="field-input" data-t-ph="phSwift" placeholder="SWIFT / BIC" oninput="App.update()">
+          </div>
+          <div id="pay-paypal-fields" class="hidden">
+            <input id="pay-paypal-email" type="email" class="field-input" data-t-ph="phPaypalEmail" placeholder="PayPal Email" oninput="App.update()">
+          </div>
+          <div id="pay-other-fields" class="hidden">
+            <textarea id="pay-custom" class="field-input" rows="2" data-t-ph="phCustomPay" placeholder="Custom payment info..." oninput="App.update()"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <div class="h-4"></div>
+    </div>
+
+    <!-- Preview Panel -->
+    <div id="preview-panel" class="preview-panel">
+      <div class="my-auto">
+        <div id="invoice-preview" class="bg-white shadow-2xl" style="width:595px;min-height:842px;border-radius:4px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pricing Modal -->
+  <div id="pricing-modal" class="modal-overlay hidden">
+    <div class="modal-content max-w-3xl">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xl font-bold text-slate-800" data-t="titlePlans">Choose Your Plan</h2>
+        <button onclick="App.closePricing()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+      </div>
+      <div id="pricing-body" class="grid grid-cols-3 gap-5"></div>
+      <div class="mt-5 pt-5 border-t border-slate-200">
+        <p class="text-sm text-slate-500 mb-2" data-t="lblLicense">Already have a license key?</p>
+        <div class="flex gap-2">
+          <input id="license-key" type="text" placeholder="XXXX-XXXX-XXXX-XXXX" data-t-ph="phLicense" class="field-input flex-1" maxlength="19" oninput="this.value=this.value.toUpperCase()">
+          <button onclick="App.activateLicense(document.getElementById('license-key').value)" class="btn-primary px-6" data-t="btnActivate">Activate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Saved Invoices Modal -->
+  <div id="saved-modal" class="modal-overlay hidden">
+    <div class="modal-content max-w-xl">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-slate-800" data-t="titleSaved">Saved Invoices</h2>
+        <button onclick="App.closeSavedModal()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+      </div>
+      <div id="saved-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+      <p id="no-saved" class="text-center text-slate-400 py-8 hidden" data-t="txtNoSaved">No saved invoices</p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
