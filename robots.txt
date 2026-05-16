@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://billcraft-demo.surge.sh/sitemap.xml
