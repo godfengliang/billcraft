@@ -1,44 +1,56 @@
-# BillCraft — Free Invoice Generator
+# BillCraft
 
-> Create professional invoices in 60 seconds. No signup, no backend, no subscription.
+[![Live Demo](https://img.shields.io/badge/Live_Demo-billcraft--demo.surge.sh-brightgreen?style=for-the-badge)](https://billcraft-demo.surge.sh)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+> Free professional invoice generator. No signup, no backend, no subscription.
+> Create invoices in 60 seconds and export PDF with one click.
 
 **Try it now:** [billcraft-demo.surge.sh](https://billcraft-demo.surge.sh)
 
+---
+
 ## Features
 
-- **3 invoice templates** — Modern, Classic, Minimal
-- **One-click PDF export** — no print dialog needed
-- **7 currencies** — USD, EUR, GBP, CNY, JPY, KRW, HKD
-- **Logo upload** — brand your invoices
-- **Tax & discount** — auto-calculated
-- **EN / ZH interface** — switch anytime
-- **Works offline** — all data in localStorage, nothing uploaded
-
-## Tech
-
-Pure vanilla JS. No React, no build step, no Node.
-
-- Single IIFE module with closure-based state
-- Tailwind CSS (CDN) for UI
-- html2canvas + jsPDF for PDF export
-- Custom i18n system via `data-t` attributes
-- localStorage auto-save
-
-The entire app is **one HTML file + one JS file + one CSS file**. Download and open locally — it works without a server.
+- **3 Invoice Templates** — Modern, Classic, Minimal styles
+- **One-Click PDF Export** — No print dialog, direct download
+- **7 Currencies** — USD, EUR, GBP, CNY, JPY, KRW, HKD with proper formatting
+- **Logo Upload** — Drag & drop your brand logo
+- **Tax & Discount** — Auto-calculated on every change
+- **Bilingual** — English + Chinese, switch anytime
+- **100% Offline** — All data in localStorage, nothing leaves your device
+- **Zero Dependencies** — No React, no Node, no build step
 
 ## Quick Start
 
 ```bash
-# Option 1: Just open index.html in a browser
+# Just open index.html in a browser — that's it.
 
-# Option 2: Local server (needed for full PDF export)
+# Or use a local server for full PDF export support:
 python -m http.server 8080
 # Then open http://localhost:8080
-
-# Option 3: Deploy anywhere static
-npx surge . your-domain.surge.sh
 ```
+
+## Tech Stack
+
+| Layer | Tech |
+|-------|------|
+| UI | Tailwind CSS (CDN) |
+| App Logic | Vanilla JS, single IIFE module |
+| PDF Export | html2canvas + jsPDF |
+| i18n | Custom system with `data-t` attributes |
+| Persistence | localStorage (auto-save drafts) |
+
+The entire project is **one HTML + one JS + one CSS file**. Download and run anywhere — even offline.
+
+## Architecture
+
+- Single IIFE closure manages all state and logic
+- Hybrid state: DOM-driven (form fields) + JS-driven (template, items, logo)
+- `App.update()` -> `renderPreview()` -> `saveDraft()` on every keystroke
+- Inline CSS in template literals for html2canvas PDF compatibility
+- `esc()` sanitizes all user input against XSS
 
 ## License
 
-MIT
+MIT — use it, fork it, share it.
